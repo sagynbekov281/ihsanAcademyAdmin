@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import { SCHEMA } from '../schema';
+import { SCHEMA as BASE } from '../schema';
+import { EXTRA } from '../extraSchema';
 import Modal from '../components/Modal';
 import Confirm from '../components/Confirm';
 
+const SCHEMA = { ...BASE, ...EXTRA };
 const money = (n) => Number(n).toLocaleString('ru-RU') + ' сом';
 const Shown = ({ on }) => <span className={'badge ' + (on ? 'on' : 'off')}>{on ? 'на сайте' : 'скрыт'}</span>;
 
 export default function Catalog({ kind }) {
   const S = SCHEMA[kind];
+  const generic = !!S.columns; // новые разделы (отзывы, команда)
   const [items, setItems] = useState([]);
   const [msg, setMsg] = useState('Загрузка...');
   const [form, setForm] = useState(null);
@@ -29,7 +32,8 @@ export default function Catalog({ kind }) {
   const seed = async () => { try { await api('/api/admin/seed/' + S.seed, { method: 'POST' }); load(); } catch (e) { alert(e.message); } };
 
   const Btns = ({ i }) => <td className="actions"><button onClick={() => setForm({ item: i })}>✏️ Изменить</button><button className="danger" onClick={() => setDel(i)}>🗑 Удалить</button></td>;
-  const heads = kind === 'courses' ? ['Курс','Цена','Скидка','Статус',''] : ['Имя','Должность','Предметы','Статус',''];
+  const heads = generic ? [...S.columns.map((c) => c[0]), 'Статус', '']
+    : kind === 'courses' ? ['Курс','Цена','Скидка','Статус',''] : ['Имя','Должность','Предметы','Статус',''];
 
   return (
     <>
@@ -42,7 +46,12 @@ export default function Catalog({ kind }) {
       {items.length > 0 && (
         <div className="table-wrap"><table>
           <thead><tr>{heads.map((h) => <th key={h}>{h}</th>)}</tr></thead>
-          <tbody>{items.map((i) => kind === 'courses' ? (
+          <tbody>{items.map((i) => generic ? (
+            <tr key={i._id}>
+              {S.columns.map(([label, fn]) => <td key={label} data-label={label}>{fn(i)}</td>)}
+              <td data-label="Статус"><Shown on={i.active} /></td><Btns i={i} />
+            </tr>
+          ) : kind === 'courses' ? (
             <tr key={i._id}>
               <td data-label="Курс">{i.title}</td>
               <td data-label="Цена">{i.discountActive ? <><s>{money(i.price)}</s> {money(i.finalPrice)}</> : money(i.price)}</td>
@@ -59,7 +68,7 @@ export default function Catalog({ kind }) {
         </table></div>
       )}
       {del && <Confirm title="Удалить запись?" text={`Запись «${del.title || del.name}» будет удалена без возможности восстановления.`} onConfirm={remove} onClose={() => setDel(null)} />}
-      {form && <Modal title={(form.item ? 'Изменить ' : 'Добавить ') + S.one} fields={S.fields} item={form.item} onSave={save} onClose={() => setForm(null)} />}
+      {form && <Modal title={(form.item ? 'Изменить ' : 'Добавить ') + S.one} fields={S.fields} pairs={S.translate} item={form.item} onSave={save} onClose={() => setForm(null)} />}
     </>
   );
 }

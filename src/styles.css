@@ -56,3 +56,4 @@ tr{display:grid;padding:4px 13px;background:var(--card);border:1px solid #222741
 td{display:flex;justify-content:space-between;gap:14px;white-space:normal;text-align:right}
 td::before{content:attr(data-label);color:#858EAF;font-size:10px;text-transform:uppercase}
 td.actions::before{display:none}.actions button{flex:1}}
+input, textarea, select { font-size: 16px !important; }

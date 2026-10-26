@@ -4,7 +4,12 @@ import Login from './pages/Login';
 import Applications from './pages/Applications';
 import Catalog from './pages/Catalog';
 
-const TABS = [['applications','Заявки','▤'],['courses','Курсы','▧'],['teachers','Учителя','♙']];
+const TABS = [
+  ['applications', 'Заявки', '▤'],
+  ['courses', 'Курсы', '▧'],
+  ['teachers', 'Учителя', '♙'],
+  ['testimonials', 'Отзывы', '★'],
+];
 
 export default function App() {
   const [authed, setAuthed] = useState(!!getToken());
